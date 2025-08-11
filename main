@@ -1,0 +1,31 @@
+from flask import Flask, request, jsonify
+from datetime import datetime
+
+app = Flask(__name__)
+
+# Store received beacons (in-memory)
+beacons = []
+
+@app.route('/beacon', methods=['POST'])
+def beacon():
+    data = request.get_json() or {}
+    ip = request.remote_addr
+    timestamp = datetime.utcnow().isoformat() + "Z"
+    beacons.append({
+        'ip': ip,
+        'timestamp': timestamp,
+        'data': data
+    })
+    print(f"[C2] Beacon received from {ip} at {timestamp} with data: {data}")
+
+    # Example command to send back — can be customized or expanded
+    command = {"action": "noop"}
+
+    return jsonify(command), 200
+
+@app.route('/beacons', methods=['GET'])
+def get_beacons():
+    return jsonify(beacons), 200
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
